@@ -7,6 +7,7 @@ import {
   documents,
   serviceSearches,
   drafts,
+  marketSearches,
   type User,
   type InsertUser,
   type VoiceQuery,
@@ -23,9 +24,12 @@ import {
   type InsertServiceSearch,
   type Draft,
   type InsertDraft,
+  type MarketSearch,
+  type InsertMarketSearch,
 } from "@shared/schema";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { eq, desc } from "drizzle-orm";
+import { InMemoryStorage } from "./in-memory-storage";
 
 export interface IStorage {
   // Users
@@ -59,6 +63,11 @@ export interface IStorage {
   // Drafts
   getDrafts(userId: string): Promise<Draft[]>;
   createDraft(draft: InsertDraft): Promise<Draft>;
+  updateDraft(id: string, content: string): Promise<Draft>;
+
+  // Market Searches
+  getMarketSearches(userId: string): Promise<MarketSearch[]>;
+  createMarketSearch(search: InsertMarketSearch): Promise<MarketSearch>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -155,6 +164,29 @@ export class DatabaseStorage implements IStorage {
     const [newDraft] = await db.insert(drafts).values(draft).returning();
     return newDraft;
   }
+
+  async updateDraft(id: string, content: string): Promise<Draft> {
+    const [updated] = await db.update(drafts)
+      .set({ content, updatedAt: new Date() })
+      .where(eq(drafts.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Market Searches
+  async getMarketSearches(userId: string): Promise<MarketSearch[]> {
+    return db.select().from(marketSearches)
+      .where(eq(marketSearches.userId, userId))
+      .orderBy(desc(marketSearches.createdAt));
+  }
+
+  async createMarketSearch(search: InsertMarketSearch): Promise<MarketSearch> {
+    const [marketSearch] = await db.insert(marketSearches).values(search).returning();
+    return marketSearch;
+  }
 }
 
-export const storage = new DatabaseStorage();
+// Export the appropriate storage implementation based on database availability
+export const storage: IStorage = pool 
+  ? new DatabaseStorage() 
+  : new InMemoryStorage();

@@ -2,15 +2,162 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { transcribeAudio, synthesizeSpeech, generateEarcon } from "./bytez-client";
-import { generateText, chatWithHistory, generateStructuredResponse } from "./gemini";
+import { 
+  generateText, 
+  chatWithHistory, 
+  generateStructuredResponse,
+  checkEligibility,
+  summarizeDocument,
+  translateText,
+  generateDraft,
+  generateVoiceResponse
+} from "./gemini";
+import { 
+  extractTextFromImage,
+  searchNearbyServices,
+  getMarketPrices,
+  calculateDistance
+} from "./api-integrations";
+import { cache, getCached } from "./cache";
 import multer from "multer";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import fetch from "node-fetch";
+// Using native fetch (Node 18+)
 
 const upload = multer({ storage: multer.memoryStorage() });
 
 const JWT_SECRET = process.env.JWT_SECRET || "ai-sahayak-secret-key-change-in-production";
+
+// Helper functions for fallback eligibility checking
+function getCategoryScheme(category: string): string {
+  const schemes: Record<string, string> = {
+    agriculture: "PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
+    education: "National Scholarship Portal - Post Matric Scholarship",
+    health: "Ayushman Bharat - Pradhan Mantri Jan Arogya Yojana",
+    housing: "Pradhan Mantri Awas Yojana - Gramin",
+    employment: "Pradhan Mantri Mudra Yojana",
+    women: "Pradhan Mantri Matru Vandana Yojana",
+    senior: "Indira Gandhi National Old Age Pension Scheme",
+  };
+  return schemes[category] || "Government Welfare Scheme";
+}
+
+function checkEligibilityFallback(category: string, userDetails: any) {
+  const age = userDetails.age || 0;
+  const income = userDetails.income || 0;
+  const schemes: Record<string, any> = {
+    agriculture: {
+      eligible: income < 200000,
+      reason: income < 200000 
+        ? "You are eligible for PM-KISAN scheme as you are a farmer with landholding."
+        : "Your income exceeds the eligibility criteria for PM-KISAN.",
+      requiredDocuments: ["Aadhaar Card", "Land Ownership Documents", "Bank Account Details", "Passport Size Photo"],
+      nextSteps: [
+        "Visit your nearest Common Service Centre (CSC) or PM-KISAN portal",
+        "Fill the online application form with your details",
+        "Upload required documents",
+        "Submit the application and note the reference number",
+        "Track your application status online"
+      ]
+    },
+    education: {
+      eligible: age >= 10 && age <= 35 && income < 250000,
+      reason: (age >= 10 && age <= 35 && income < 250000)
+        ? "You are eligible for National Scholarship Portal schemes based on your age and income."
+        : "You do not meet the age or income criteria for scholarship schemes.",
+      requiredDocuments: ["Aadhaar Card", "Income Certificate", "Caste Certificate (if applicable)", "Previous Year Mark Sheet", "Bank Account Details"],
+      nextSteps: [
+        "Register on National Scholarship Portal (scholarships.gov.in)",
+        "Complete your profile with accurate details",
+        "Apply for relevant scholarship schemes",
+        "Upload all required documents",
+        "Submit and track your application"
+      ]
+    },
+    health: {
+      eligible: income < 500000,
+      reason: income < 500000
+        ? "You are eligible for Ayushman Bharat health coverage with annual income below ₹5 lakhs."
+        : "Your income exceeds the eligibility limit for Ayushman Bharat scheme.",
+      requiredDocuments: ["Aadhaar Card", "Ration Card", "Income Certificate", "Residence Proof"],
+      nextSteps: [
+        "Visit nearest Ayushman Bharat - Health and Wellness Centre",
+        "Get your eligibility verified",
+        "Receive your Ayushman Bharat card",
+        "Use the card at empanelled hospitals for free treatment",
+        "Coverage up to ₹5 lakhs per family per year"
+      ]
+    },
+    housing: {
+      eligible: income < 300000 && !userDetails.hasHouse,
+      reason: (income < 300000 && !userDetails.hasHouse)
+        ? "You are eligible for PM Awas Yojana as you don't own a pucca house and meet income criteria."
+        : "You either own a house or your income exceeds the eligibility criteria.",
+      requiredDocuments: ["Aadhaar Card", "Income Certificate", "Residence Proof", "Bank Account Details", "Caste Certificate (if applicable)"],
+      nextSteps: [
+        "Visit PM Awas Yojana portal (pmaymis.gov.in)",
+        "Fill the online application form",
+        "Get verification from local authorities",
+        "Submit all required documents",
+        "Wait for approval and subsidy disbursement"
+      ]
+    },
+    employment: {
+      eligible: age >= 18 && age <= 65,
+      reason: (age >= 18 && age <= 65)
+        ? "You are eligible for PM Mudra Yojana to start or expand your micro-enterprise."
+        : "You do not meet the age criteria for PM Mudra Yojana.",
+      requiredDocuments: ["Aadhaar Card", "PAN Card", "Business Plan/Proposal", "Bank Account Details", "Residence and Identity Proof"],
+      nextSteps: [
+        "Prepare a detailed business plan",
+        "Visit nearest bank or NBFC offering Mudra loans",
+        "Fill the loan application form",
+        "Submit required documents and business plan",
+        "Attend verification and receive loan approval"
+      ]
+    },
+    women: {
+      eligible: userDetails.gender === "female" && age >= 19 && age <= 45,
+      reason: (userDetails.gender === "female" && age >= 19 && age <= 45)
+        ? "You are eligible for PM Matru Vandana Yojana maternity benefits."
+        : "You do not meet the eligibility criteria for women empowerment schemes.",
+      requiredDocuments: ["Aadhaar Card", "Mother and Child Protection Card", "Bank Account Details", "Age Proof"],
+      nextSteps: [
+        "Register at your nearest Anganwadi Centre",
+        "Fill Form 1A during pregnancy (before 150 days)",
+        "Fill Form 1B after first antenatal check-up",
+        "Fill Form 1C after child birth and vaccination",
+        "Receive direct benefit transfer of ₹5,000 in installments"
+      ]
+    },
+    senior: {
+      eligible: age >= 60 && income < 100000,
+      reason: (age >= 60 && income < 100000)
+        ? "You are eligible for Indira Gandhi National Old Age Pension Scheme."
+        : "You do not meet the age or income criteria for senior citizen pension.",
+      requiredDocuments: ["Aadhaar Card", "Age Proof (Birth Certificate/School Certificate)", "Income Certificate", "Bank Account Details", "Residence Proof"],
+      nextSteps: [
+        "Visit your local Panchayat or Municipal office",
+        "Fill the pension application form",
+        "Submit required documents for verification",
+        "Get approval from competent authority",
+        "Receive monthly pension in your bank account"
+      ]
+    }
+  };
+
+  const schemeData = schemes[category] || {
+    eligible: false,
+    reason: "Unable to determine eligibility. Please visit your nearest CSC or government office.",
+    requiredDocuments: ["Aadhaar Card", "Income Certificate", "Residence Proof"],
+    nextSteps: ["Visit nearest Common Service Centre", "Consult with government officials"]
+  };
+
+  return {
+    schemeName: getCategoryScheme(category),
+    ...schemeData
+  };
+}
 
 // Middleware to verify JWT token
 function authenticateToken(req: Request, res: Response, next: Function) {
@@ -41,23 +188,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/user/current", async (req: Request, res: Response) => {
     try {
       const userId = (req as any).user.id;
-      let user = await storage.getUser(userId);
       
-      // Create demo user if doesn't exist
-      if (!user) {
-        user = await storage.createUser({
+      // Try to get from database, but fallback to mock data if DB fails
+      try {
+        let user = await storage.getUser(userId);
+        
+        // Create demo user if doesn't exist
+        if (!user) {
+          user = await storage.createUser({
+            username: "demo",
+            password: await bcrypt.hash("demo123", 10),
+            fullName: "Proud Indian",
+            email: "demo@ai-sahayak.in",
+            phone: "+91 9876543210",
+          });
+        }
+        
+        res.json(user);
+      } catch (dbError) {
+        // Database connection failed, use mock data
+        console.warn("Database unavailable, using mock user data");
+        res.json({
+          id: 1,
           username: "demo",
-          password: await bcrypt.hash("demo123", 10),
-          fullName: "Demo User",
+          fullName: "Proud Indian",
           email: "demo@ai-sahayak.in",
           phone: "+91 9876543210",
+          createdAt: new Date().toISOString(),
         });
       }
-      
-      res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
+  // Save user language preference
+  app.post("/api/user/language", async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user?.id;
+      const { language } = req.body;
+
+      if (!language) {
+        return res.status(400).json({ error: "Language is required" });
+      }
+
+      // Validate language code
+      const validLanguages = ['en', 'hi', 'ta', 'te', 'bn', 'mr', 'gu', 'kn', 'ml', 'pa'];
+      if (!validLanguages.includes(language)) {
+        return res.status(400).json({ error: "Invalid language code" });
+      }
+
+      // Save to database if user is authenticated
+      if (userId) {
+        try {
+          await storage.updateUserLanguage(userId, language);
+        } catch (dbError) {
+          console.warn("Failed to save language to database:", dbError);
+          // Continue anyway - client-side localStorage will handle it
+        }
+      }
+
+      res.json({ success: true, language });
+    } catch (error) {
+      console.error("Error saving language preference:", error);
+      res.status(500).json({ error: "Failed to save language preference" });
     }
   });
 
@@ -69,7 +264,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const transcript = await transcribeAudio(req.file.buffer, req.file.mimetype);
-      res.json({ transcript });
+      
+      // Get user's language preference
+      const userId = (req as any).user.id;
+      const user = await storage.getUser(userId);
+      const language = user?.language || 'en';
+      
+      // Generate AI response for voice query
+      const response = await generateVoiceResponse(transcript, language);
+      
+      // Generate TTS audio for response
+      const audioBuffer = await synthesizeSpeech(response);
+      const responseAudioUrl = `/api/audio/response-${Date.now()}.wav`;
+      
+      // Save voice query
+      await storage.createVoiceQuery({
+        userId,
+        audioUrl: `/api/audio/input-${Date.now()}.wav`,
+        transcript,
+        response,
+        responseAudioUrl,
+      });
+
+      res.json({ transcript, response, responseAudioUrl });
     } catch (error) {
       console.error("Transcription error:", error);
       res.status(500).json({ error: "Failed to transcribe audio" });
@@ -115,6 +332,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { message, mode, conversationId } = req.body;
       const userId = (req as any).user.id;
 
+      // Get user's language preference
+      const user = await storage.getUser(userId);
+      const language = user?.language || 'en';
+
       // Get or create conversation
       let conversation;
       if (conversationId) {
@@ -138,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       // Generate response
-      const response = await chatWithHistory(message, historyFormatted);
+      const response = await chatWithHistory(historyFormatted, message, language);
 
       // Save user message
       await storage.createMessage({
@@ -214,48 +435,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { category, userDetails } = req.body;
       const userId = (req as any).user.id;
 
-      const prompt = `Analyze eligibility for a government scheme in ${category} category for a user with these details:
-Age: ${userDetails.age}
-Income: ₹${userDetails.income}/year
-Occupation: ${userDetails.occupation}
-State: ${userDetails.state}
-
-Determine:
-1. A suitable government scheme in this category
-2. Whether they are eligible (true/false)
-3. Clear reason for eligibility/ineligibility
-4. Required documents (array of strings)
-5. Next steps to apply (array of strings)
-
-Respond in JSON format.`;
-
-      const schema = {
-        type: "object",
-        properties: {
-          schemeName: { type: "string" },
-          eligible: { type: "boolean" },
-          eligibilityReason: { type: "string" },
-          requiredDocuments: {
-            type: "array",
-            items: { type: "string" },
-          },
-          nextSteps: {
-            type: "array",
-            items: { type: "string" },
-          },
-        },
-        required: ["schemeName", "eligible", "eligibilityReason", "requiredDocuments", "nextSteps"],
-      };
-
-      const result = await generateStructuredResponse<any>(prompt, schema);
+      let result;
+      try {
+        // Use enhanced eligibility checker
+        result = await checkEligibility("", category, userDetails);
+      } catch (aiError) {
+        console.warn("Gemini API failed, using fallback eligibility check:", aiError);
+        // Fallback to rule-based eligibility
+        result = checkEligibilityFallback(category, userDetails);
+      }
 
       const check = await storage.createEligibilityCheck({
         userId,
-        schemeName: result.schemeName,
+        schemeName: result.schemeName || getCategoryScheme(category),
         schemeCategory: category,
         userDetails,
         eligible: result.eligible,
-        eligibilityReason: result.eligibilityReason,
+        eligibilityReason: result.reason,
         requiredDocuments: result.requiredDocuments,
         nextSteps: result.nextSteps,
       });
@@ -281,21 +477,75 @@ Respond in JSON format.`;
   // ============= MARKET DATA ROUTES =============
   app.get("/api/markets", async (req: Request, res: Response) => {
     try {
-      // Mock market data - in production, fetch from data.gov.in API
-      const mockMarketData = [
-        { commodity: "Wheat", market: "Mandi, Punjab", state: "Punjab", price: 2100, unit: "quintal", date: new Date().toISOString(), trend: "up", change: 2.5 },
-        { commodity: "Rice", market: "Karnal, Haryana", state: "Haryana", price: 2800, unit: "quintal", date: new Date().toISOString(), trend: "stable", change: 0 },
-        { commodity: "Cotton", market: "Yavatmal, Maharashtra", state: "Maharashtra", price: 6500, unit: "quintal", date: new Date().toISOString(), trend: "down", change: -1.2 },
-        { commodity: "Tomato", market: "Azadpur, Delhi", state: "Delhi", price: 45, unit: "kg", date: new Date().toISOString(), trend: "up", change: 15.3 },
-        { commodity: "Onion", market: "Lasalgaon, Maharashtra", state: "Maharashtra", price: 32, unit: "kg", date: new Date().toISOString(), trend: "down", change: -8.7 },
-        { commodity: "Potato", market: "Agra, UP", state: "Uttar Pradesh", price: 18, unit: "kg", date: new Date().toISOString(), trend: "stable", change: 0.5 },
-        { commodity: "Sugarcane", market: "Muzaffarnagar, UP", state: "Uttar Pradesh", price: 3100, unit: "quintal", date: new Date().toISOString(), trend: "up", change: 3.2 },
-      ];
+      const { commodity, state, district } = req.query;
+      const userId = (req as any).user.id;
+      
+      // Use cache for market data (5 minute TTL)
+      const cacheKey = `market:${commodity || 'all'}:${state || 'all'}:${district || 'all'}`;
+      
+      const rawMarketData = await getCached(
+        cacheKey,
+        () => getMarketPrices(
+          commodity as string | undefined,
+          state as string | undefined,
+          district as string | undefined
+        ),
+        300 // 5 minutes
+      );
 
-      res.json(mockMarketData);
+      // Transform data to match frontend expectations
+      const marketData = rawMarketData.map((item: any) => {
+        const modalPrice = parseFloat(item.modal_price || item.price || "0");
+        const minPrice = parseFloat(item.min_price || item.minPrice || String(modalPrice * 0.95));
+        const maxPrice = parseFloat(item.max_price || item.maxPrice || String(modalPrice * 1.05));
+        
+        // Calculate trend based on price variance
+        const variance = maxPrice - minPrice;
+        const changePercent = modalPrice > 0 ? ((variance / modalPrice) * 100).toFixed(1) : "0.0";
+        const trend = variance > modalPrice * 0.05 ? "up" : variance < -modalPrice * 0.05 ? "down" : "stable";
+        
+        return {
+          commodity: item.commodity || "Unknown",
+          market: item.market || `${item.district} Mandi`,
+          state: item.state || "India",
+          district: item.district || "",
+          price: Math.round(modalPrice),
+          minPrice: Math.round(minPrice),
+          maxPrice: Math.round(maxPrice),
+          unit: "Rs/Quintal",
+          date: item.arrival_date || new Date().toISOString().split('T')[0],
+          trend,
+          change: parseFloat(changePercent),
+        };
+      });
+
+      // Save search if user is filtering
+      if (commodity || state || district) {
+        await storage.createMarketSearch({
+          userId,
+          commodity: commodity as string || "",
+          state: state as string,
+          district: district as string,
+          market: "",
+          results: marketData,
+        });
+      }
+
+      res.json(marketData);
     } catch (error) {
       console.error("Market data error:", error);
       res.status(500).json({ error: "Failed to fetch market data" });
+    }
+  });
+
+  app.get("/api/markets/history", async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.id;
+      const searches = await storage.getMarketSearches(userId);
+      res.json(searches);
+    } catch (error) {
+      console.error("Error fetching market history:", error);
+      res.status(500).json({ error: "Failed to fetch history" });
     }
   });
 
@@ -307,32 +557,25 @@ Respond in JSON format.`;
       }
 
       const userId = (req as any).user.id;
+      const { language } = req.body;
 
-      // OCR using OCR.space API
+      // OCR using integrated API
       let extractedText = "";
       try {
-        const formData = new FormData();
-        formData.append("file", req.file.buffer, req.file.originalname);
-        formData.append("apikey", process.env.OCR_API_KEY || "");
-        formData.append("language", "eng");
-
-        const ocrResponse = await fetch("https://api.ocr.space/parse/image", {
-          method: "POST",
-          body: formData as any,
-        });
-
-        const ocrData: any = await ocrResponse.json();
-        extractedText = ocrData.ParsedResults?.[0]?.ParsedText || "Could not extract text";
+        extractedText = await extractTextFromImage(req.file.buffer);
       } catch (ocrError) {
         console.error("OCR error:", ocrError);
         extractedText = "Sample extracted text from document. OCR processing failed.";
       }
 
       // Generate summary using Gemini
-      const summary = await generateText(
-        `Summarize this document text in 2-3 clear sentences: ${extractedText}`,
-        "You are a helpful assistant that creates clear, concise summaries."
-      );
+      const summary = await summarizeDocument(extractedText, language);
+
+      // Optional translation
+      let translation = null;
+      if (language && language !== "en") {
+        translation = await translateText(extractedText, language);
+      }
 
       // Save document
       const document = await storage.createDocument({
@@ -342,12 +585,15 @@ Respond in JSON format.`;
         fileType: req.file.mimetype,
         extractedText,
         summary,
+        translation,
+        language,
       });
 
       res.json({
         ...document,
         extractedText,
         summary,
+        translation,
       });
     } catch (error) {
       console.error("Document analysis error:", error);
@@ -359,10 +605,7 @@ Respond in JSON format.`;
     try {
       const { text, targetLanguage } = req.body;
       
-      const translation = await generateText(
-        `Translate this to ${targetLanguage === "hi" ? "Hindi" : targetLanguage}: ${text}`,
-        "You are a professional translator. Provide only the translation, no explanations."
-      );
+      const translation = await translateText(text, targetLanguage);
 
       res.json({ translation });
     } catch (error) {
@@ -388,14 +631,19 @@ Respond in JSON format.`;
       const { serviceType, location, coords } = req.body;
       const userId = (req as any).user.id;
 
-      // Use OpenStreetMap Nominatim API for geocoding and searching
+      // Use OpenStreetMap Nominatim API for geocoding
       let lat = coords?.lat;
       let lon = coords?.lon;
 
       if (!coords && location) {
         // Geocode location
         const geocodeResponse = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`,
+          {
+            headers: {
+              "User-Agent": "AI-Sahayak/1.0",
+            },
+          }
         );
         const geocodeData: any = await geocodeResponse.json();
         if (geocodeData.length > 0) {
@@ -404,12 +652,22 @@ Respond in JSON format.`;
         }
       }
 
-      // Mock service results - in production, use Overpass API or similar
-      const mockServices = [
-        { name: "District Hospital", type: serviceType, address: "Main Road, City Center", distance: 2.3, latitude: lat || 28.6139, longitude: lon || 77.2090, phone: "+91-11-26589000" },
-        { name: "Community Health Center", type: serviceType, address: "Gandhi Nagar", distance: 4.1, latitude: lat ? lat + 0.01 : 28.6239, longitude: lon ? lon + 0.01 : 77.2190 },
-        { name: "Government Dispensary", type: serviceType, address: "Sector 15", distance: 5.7, latitude: lat ? lat - 0.01 : 28.6039, longitude: lon ? lon - 0.01 : 77.1990, phone: "+91-11-26589100" },
-      ];
+      // Search for nearby services
+      let services = [];
+      if (lat && lon) {
+        services = await searchNearbyServices(serviceType, lat, lon);
+        
+        // Calculate distances
+        services = services.map((service: any) => ({
+          ...service,
+          distance: calculateDistance(
+            lat!,
+            lon!,
+            parseFloat(service.latitude),
+            parseFloat(service.longitude)
+          ).toFixed(2),
+        }));
+      }
 
       // Save search
       await storage.createServiceSearch({
@@ -418,10 +676,10 @@ Respond in JSON format.`;
         location: location || "Current Location",
         latitude: lat?.toString(),
         longitude: lon?.toString(),
-        results: mockServices,
+        results: services,
       });
 
-      res.json({ services: mockServices });
+      res.json({ services });
     } catch (error) {
       console.error("Service search error:", error);
       res.status(500).json({ error: "Failed to search services" });
@@ -431,19 +689,9 @@ Respond in JSON format.`;
   // ============= DRAFT ROUTES =============
   app.post("/api/drafts/generate", async (req: Request, res: Response) => {
     try {
-      const { draftType, purpose } = req.body;
+      const { draftType, purpose, details } = req.body;
 
-      const prompt = `Generate a professional ${draftType} in English based on this purpose: ${purpose}
-      
-Make it formal, clear, and properly formatted. Include:
-- Proper greeting and closing
-- Clear subject line (if applicable)
-- Professional language
-- Appropriate structure for this document type
-
-Provide only the draft content, no additional explanations.`;
-
-      const content = await generateText(prompt, "You are a professional document writer helping Indian citizens create formal documents.");
+      const content = await generateDraft(draftType, purpose, details || {});
 
       const title = `${draftType.charAt(0).toUpperCase() + draftType.slice(1)} - ${new Date().toLocaleDateString()}`;
 

@@ -21,50 +21,51 @@ import {
   PenTool,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { useTranslation } from "react-i18next";
 
 const mainModules = [
   {
-    title: "Dashboard",
+    titleKey: "nav.dashboard",
     url: "/",
     icon: Home,
   },
   {
-    title: "Voice Assistant",
+    titleKey: "nav.voice",
     url: "/assistant/voice",
     icon: Mic,
   },
   {
-    title: "Recent Queries",
+    titleKey: "nav.queries",
     url: "/queries",
     icon: History,
   },
   {
-    title: "Eligibility Checker",
+    titleKey: "nav.eligibility",
     url: "/eligibility",
     icon: CheckCircle,
   },
   {
-    title: "Market Data",
+    titleKey: "nav.markets",
     url: "/markets",
     icon: TrendingUp,
   },
   {
-    title: "Chat Assistant",
+    titleKey: "nav.chat",
     url: "/assistant/chat",
     icon: MessageSquare,
   },
   {
-    title: "Document Analyzer",
+    titleKey: "nav.documents",
     url: "/documents/analyze",
     icon: FileText,
   },
   {
-    title: "Service Discovery",
+    titleKey: "nav.services",
     url: "/services/search",
     icon: MapPin,
   },
   {
-    title: "Draft Generator",
+    titleKey: "nav.drafts",
     url: "/drafts",
     icon: PenTool,
   },
@@ -72,28 +73,29 @@ const mainModules = [
 
 export function AppSidebar() {
   const [location] = useLocation();
+  const { t } = useTranslation();
 
   return (
     <Sidebar>
       <SidebarHeader className="p-6 border-b">
-        <h1 className="text-2xl font-bold text-primary">AI-Sahayak</h1>
-        <p className="text-sm text-muted-foreground">Government Services Assistant</p>
+        <h1 className="text-2xl font-bold text-primary">{t('app.name')}</h1>
+        <p className="text-sm text-muted-foreground">{t('app.tagline')}</p>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-base px-6">Main Modules</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-base px-6">{t('nav.modules')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainModules.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.titleKey}>
                   <SidebarMenuButton
                     asChild
                     isActive={location === item.url}
-                    data-testid={`nav-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+                    data-testid={`nav-${item.titleKey.split('.').pop()}`}
                   >
                     <Link href={item.url}>
                       <item.icon className="h-5 w-5" />
-                      <span className="text-base">{item.title}</span>
+                      <span className="text-base">{t(item.titleKey)}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

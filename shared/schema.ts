@@ -12,6 +12,7 @@ export const users = pgTable("users", {
   phone: text("phone"),
   password: text("password").notNull(),
   fullName: text("full_name"),
+  language: text("language").default('en'),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -99,6 +100,18 @@ export const drafts = pgTable("drafts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Market data searches
+export const marketSearches = pgTable("market_searches", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  commodity: text("commodity").notNull(),
+  state: text("state"),
+  district: text("district"),
+  market: text("market"),
+  results: jsonb("results").notNull(), // price data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   voiceQueries: many(voiceQueries),
@@ -107,6 +120,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   documents: many(documents),
   serviceSearches: many(serviceSearches),
   drafts: many(drafts),
+  marketSearches: many(marketSearches),
 }));
 
 export const voiceQueriesRelations = relations(voiceQueries, ({ one }) => ({
@@ -159,6 +173,13 @@ export const draftsRelations = relations(drafts, ({ one }) => ({
   }),
 }));
 
+export const marketSearchesRelations = relations(marketSearches, ({ one }) => ({
+  user: one(users, {
+    fields: [marketSearches.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -202,6 +223,11 @@ export const insertDraftSchema = createInsertSchema(drafts).omit({
   updatedAt: true,
 });
 
+export const insertMarketSearchSchema = createInsertSchema(marketSearches).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -226,3 +252,6 @@ export type ServiceSearch = typeof serviceSearches.$inferSelect;
 
 export type InsertDraft = z.infer<typeof insertDraftSchema>;
 export type Draft = typeof drafts.$inferSelect;
+
+export type InsertMarketSearch = z.infer<typeof insertMarketSearchSchema>;
+export type MarketSearch = typeof marketSearches.$inferSelect;
