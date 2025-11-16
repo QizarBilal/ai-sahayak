@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { MapPin, Navigation, Phone, Loader2, Volume2, AlertCircle, StopCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import staticServicesData from "@/data/staticServices.json";
 
 const serviceTypes = [
   { value: "hospital", label: "Hospital / Clinic", labelHi: "अस्पताल / क्लिनिक", labelTa: "மருத்துவமனை / கிளினிக்" },
@@ -26,9 +27,11 @@ const serviceTypes = [
   { value: "school", label: "School / College", labelHi: "स्कूल / कॉलेज", labelTa: "பள்ளி / கல்லூரி" },
   { value: "railway_station", label: "Railway Station", labelHi: "रेलवे स्टेशन", labelTa: "ரயில் நிலையம்" },
   { value: "bus_station", label: "Bus Station", labelHi: "बस स्टेशन", labelTa: "பேருந்து நிலையம்" },
+  { value: "petrol_pump", label: "Petrol Pump", labelHi: "पेट्रोल पंप", labelTa: "பெட்ரோல் பம்ப்" },
 ];
 
 interface NearbyService {
+  id?: string;
   name: string;
   type: string;
   address: string;
@@ -36,122 +39,86 @@ interface NearbyService {
   latitude: number;
   longitude: number;
   phone?: string;
+  contact?: string;
 }
 
-const STATIC_SERVICES: Record<string, NearbyService[]> = {
-  hospital: [
-    {
-      name: "Primary Health Centre (PHC)",
-      type: "hospital",
-      address: "Main Road, Village Center, Tamil Nadu",
-      distance: 1.2,
-      latitude: 11.0168,
-      longitude: 76.9558,
-      phone: "+91 422 2345678",
-    },
-    {
-      name: "Community Health Center",
-      type: "hospital",
-      address: "District Hospital Road, Tamil Nadu",
-      distance: 3.5,
-      latitude: 11.0180,
-      longitude: 76.9570,
-      phone: "+91 422 2345679",
-    },
-  ],
-  police: [
-    {
-      name: "Police Station",
-      type: "police",
-      address: "Police Station Road, Town Center, Tamil Nadu",
-      distance: 2.1,
-      latitude: 11.0170,
-      longitude: 76.9560,
-      phone: "+91 422 2345680",
-    },
-  ],
-  government_office: [
-    {
-      name: "Tamil Nadu Electricity Board Office",
-      type: "government_office",
-      address: "EB Office Road, District Center, Tamil Nadu",
-      distance: 0.9,
-      latitude: 11.0165,
-      longitude: 76.9555,
-      phone: "+91 422 2345681",
-    },
-    {
-      name: "Taluk Office",
-      type: "government_office",
-      address: "Taluk Office Road, District HQ, Tamil Nadu",
-      distance: 2.8,
-      latitude: 11.0175,
-      longitude: 76.9565,
-      phone: "+91 422 2345682",
-    },
-  ],
-  post_office: [
-    {
-      name: "Post Office",
-      type: "post_office",
-      address: "Post Office Street, Village, Tamil Nadu",
-      distance: 1.4,
-      latitude: 11.0167,
-      longitude: 76.9557,
-      phone: "+91 422 2345683",
-    },
-  ],
-  bank: [
-    {
-      name: "State Bank of India",
-      type: "bank",
-      address: "Bank Street, Town Center, Tamil Nadu",
-      distance: 1.8,
-      latitude: 11.0172,
-      longitude: 76.9562,
-      phone: "+91 422 2345684",
-    },
-    {
-      name: "Post Office Savings Bank",
-      type: "bank",
-      address: "Post Office Road, Village, Tamil Nadu",
-      distance: 1.5,
-      latitude: 11.0169,
-      longitude: 76.9559,
-    },
-  ],
-  school: [
-    {
-      name: "Government High School",
-      type: "school",
-      address: "School Road, Village, Tamil Nadu",
-      distance: 0.7,
-      latitude: 11.0163,
-      longitude: 76.9553,
-      phone: "+91 422 2345685",
-    },
-  ],
-  railway_station: [
-    {
-      name: "Railway Station",
-      type: "railway_station",
-      address: "Station Road, Town, Tamil Nadu",
-      distance: 5.2,
-      latitude: 11.0185,
-      longitude: 76.9575,
-    },
-  ],
-  bus_station: [
-    {
-      name: "Bus Stand",
-      type: "bus_station",
-      address: "Bus Stand Road, Town Center, Tamil Nadu",
-      distance: 1.9,
-      latitude: 11.0173,
-      longitude: 76.9563,
-    },
-  ],
+// Map service types to JSON keys
+const SERVICE_TYPE_MAP: Record<string, string> = {
+  hospital: "hospitals",
+  police: "police",
+  post_office: "post_offices",
+  bank: "banks",
+  government_office: "government_offices",
+  school: "schools",
+  railway_station: "railway_stations",
+  bus_station: "bus_stations",
+  petrol_pump: "petrol_pumps",
 };
+
+// Calculate distance between two coordinates (Haversine formula)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Smart static matching function
+function getStaticServices(
+  serviceType: string,
+  location: string,
+  coords?: { lat: number; lon: number }
+): NearbyService[] {
+  const jsonKey = SERVICE_TYPE_MAP[serviceType];
+  if (!jsonKey || !(staticServicesData as any)[jsonKey]) {
+    return [];
+  }
+
+  const allServices = (staticServicesData as any)[jsonKey] as any[];
+  
+  // If coords provided, calculate actual distance and sort
+  if (coords) {
+    return allServices
+      .map((service: any) => ({
+        ...service,
+        phone: service.contact || service.phone,
+        distance: calculateDistance(
+          coords.lat,
+          coords.lon,
+          service.latitude,
+          service.longitude
+        ),
+      }))
+      .sort((a: any, b: any) => a.distance - b.distance)
+      .slice(0, 10); // Return top 10 nearest
+  }
+
+  // Text-based search in name/address
+  const searchTerm = location.toLowerCase();
+  let filtered = allServices;
+
+  if (searchTerm) {
+    filtered = allServices.filter((service: any) => {
+      const nameMatch = service.name.toLowerCase().includes(searchTerm);
+      const addressMatch = service.address.toLowerCase().includes(searchTerm);
+      return nameMatch || addressMatch;
+    });
+  }
+
+  // Add estimated distances
+  return filtered.slice(0, 10).map((service: any, index: number) => ({
+    ...service,
+    phone: service.contact || service.phone,
+    distance: 1.0 + index * 0.8, // Estimated distances
+  }));
+}
 
 export default function ServiceDiscovery() {
   const [serviceType, setServiceType] = useState("");
@@ -177,14 +144,18 @@ export default function ServiceDiscovery() {
         description: t('services.foundServices'),
       });
     },
-    onError: () => {
-      // Static fallback
+    onError: (error: any, variables: any) => {
+      // Static fallback with smart matching
       setUseFallbackMode(true);
-      const fallbackServices = STATIC_SERVICES[serviceType] || [];
+      const fallbackServices = getStaticServices(
+        variables.serviceType,
+        variables.location,
+        variables.coords
+      );
       setResults(fallbackServices);
       toast({
-        title: t('services.fallbackMode') || "API not working",
-        description: t('services.staticServices') || "Showing nearby static services",
+        title: t('services.fallbackMode') || "API not working — showing static nearby services",
+        description: `${t('services.staticServices') || "Found"} ${fallbackServices.length} ${t('services.services') || "services"}`,
         variant: "default",
       });
     },
@@ -203,12 +174,16 @@ export default function ServiceDiscovery() {
             },
           });
         },
-        () => {
+        (error) => {
           toast({
-            title: t('services.locationError'),
-            description: t('services.locationErrorDesc'),
+            title: t('services.locationError') || "Location Error",
+            description: t('services.locationErrorDesc') || "Could not access GPS. Please enter location manually.",
             variant: "destructive",
           });
+          // Fallback to static services with estimated location
+          setUseFallbackMode(true);
+          const fallbackServices = getStaticServices(serviceType, location || "");
+          setResults(fallbackServices);
         }
       );
     } else {
@@ -225,20 +200,29 @@ export default function ServiceDiscovery() {
       window.speechSynthesis.cancel();
       setIsSpeaking(true);
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = i18n.language === 'en' ? 'en-US' : 
-                       i18n.language === 'hi' ? 'hi-IN' : 
-                       i18n.language === 'ta' ? 'ta-IN' : 
-                       i18n.language === 'te' ? 'te-IN' : 
-                       i18n.language === 'bn' ? 'bn-IN' : 
-                       i18n.language === 'mr' ? 'mr-IN' : 
-                       i18n.language === 'gu' ? 'gu-IN' : 
-                       i18n.language === 'kn' ? 'kn-IN' : 
-                       i18n.language === 'ml' ? 'ml-IN' : 
-                       i18n.language === 'pa' ? 'pa-IN' : 'en-US';
+      
+      // Map language to correct voice code
+      const langMap: { [key: string]: string } = {
+        'en': 'en-US',
+        'hi': 'hi-IN',
+        'ta': 'ta-IN',
+        'te': 'te-IN',
+        'bn': 'bn-IN',
+        'mr': 'mr-IN',
+        'gu': 'gu-IN',
+        'kn': 'kn-IN',
+        'ml': 'ml-IN',
+        'pa': 'pa-IN'
+      };
+      
+      utterance.lang = langMap[i18n.language] || 'en-US';
       utterance.rate = 0.9;
       utterance.pitch = 1.0;
       utterance.volume = 1.0;
       utterance.onend = () => {
+        setIsSpeaking(false);
+      };
+      utterance.onerror = () => {
         setIsSpeaking(false);
       };
       synthRef.current = utterance;

@@ -358,8 +358,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: m.content,
       }));
 
-      // Generate response
-      const response = await chatWithHistory(historyFormatted, message, language);
+      let response: string;
+
+      // Try OpenRouter API first (real-time mode)
+      const openrouterKey = process.env.OPENROUTER_API_KEY;
+      if (openrouterKey && openrouterKey !== 'your-openrouter-api-key-here') {
+        try {
+          const systemPrompt = `You are AI-Sahayak, a government assistance AI built for rural and urban citizens of India. You help with:
+- Government schemes (PM-Kisan, Ayushman Bharat, PMAY, pensions, scholarships)
+- Market prices for crops and vegetables
+- Document guidance (Aadhaar, PAN, ration cards)
+- Eligibility checking for various schemes
+- Service discovery (hospitals, CSCs, banks)
+
+Always respond in ${language} language. Give accurate, simple, rural-friendly answers. Be helpful and respectful.`;
+
+          const messages = [
+            { role: "system", content: systemPrompt },
+            ...historyFormatted.slice(-10), // Last 10 messages for context
+            { role: "user", content: message }
+          ];
+
+          const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openrouterKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'https://ai-sahayak.netlify.app',
+              'X-Title': 'AI-Sahayak Government Assistant'
+            },
+            body: JSON.stringify({
+              model: 'deepseek/deepseek-chat-v3:free', // Primary free model
+              messages: messages,
+              temperature: 0.7,
+              max_tokens: 500
+            })
+          });
+
+          if (openrouterResponse.ok) {
+            const data = await openrouterResponse.json();
+            response = data.choices[0]?.message?.content || "No response from AI";
+          } else {
+            throw new Error('OpenRouter API failed');
+          }
+        } catch (openrouterError) {
+          console.error('OpenRouter error, falling back to Gemini:', openrouterError);
+          // Fallback to Gemini
+          response = await chatWithHistory(historyFormatted, message, language);
+        }
+      } else {
+        // No OpenRouter key, use Gemini
+        response = await chatWithHistory(historyFormatted, message, language);
+      }
 
       // Save user message
       await storage.createMessage({

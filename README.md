@@ -1,25 +1,133 @@
-# AI-SAHAYAK - Complete Government Services Platform
+# 🇮🇳 AI-SAHAYAK - Digital Seva AI Companion for Bharat
 
-> **Full-Stack Voice-First AI Assistant for Rural Indian Citizens**
+> **Multilingual, Voice-Controlled, Real-Time AI Assistant Making Government Services Accessible to Every Citizen**
 
-AI-Sahayak is a production-ready, voice-driven platform that helps rural Indian citizens access government services, check scheme eligibility, search nearby services, analyze documents, and more—using cutting-edge AI powered by **Gemini 1.5 Pro**, **Bytez Whisper-large-v3**, and **Bark TTS**.
+AI-Sahayak is a one-stop intelligent platform designed to bridge the digital divide by empowering rural and low-literacy citizens with voice-first access to government services, scheme eligibility, market data, and digital assistance—especially designed for those who cannot read or type.
+
+**Powered by:** Speech-to-Text • AI-Driven Reasoning • Text-to-Speech • Real-Time Market Data • Document OCR • Service Discovery • Draft Generation
 
 ---
 
-## 🌟 Features
+## ⭐ KEY FEATURES
 
-### 10 Complete Modules
+### 1. 🎤 Voice Assistant (STT + AI Response + TTS)
+Citizens can **speak in their language**. AI-Sahayak listens, understands, and responds with clear voice output, making it usable even for **illiterate users**.
 
-1. **Voice Assistant** - Natural voice conversations using Whisper STT + Bark TTS
-2. **Chat Assistant** - Text/voice chat with conversation history
-3. **Recent Queries** - Complete history of all voice interactions
-4. **Eligibility Checker** - AI-powered scheme eligibility with reasoning
-5. **Market Data** - Live commodity prices from Indian mandis (cached)
-6. **Document Analyzer** - OCR + summarization + translation
-7. **Service Discovery** - Find nearby hospitals, police stations, etc. (OpenStreetMap)
-8. **Draft Generator** - Generate official letters, applications, complaints
-9. **Personalized Dashboard** - Quick access to all features
-10. **Settings & Profile** - User preferences and theme toggle
+**Technology:**
+- **Whisper STT** (HuggingFace) or Browser Speech Recognition
+- **OpenRouter LLM** (DeepSeek/Llama/Mistral) with multilingual support
+- **Browser Text-to-Speech** in 10 Indian languages
+- **Automatic fallback** to browser-only mode when APIs unavailable
+
+### 2. ✅ Eligibility Checker
+A **rule-based + AI reasoning engine** with **2000+ government scheme rules** evaluates:
+- Age, Income, Occupation, State, Documents
+
+**Instantly tells the user:**
+- ✔ Whether they are eligible
+- ✔ Required documents
+- ✔ Next steps
+- ✔ Where to apply
+
+**Covers:** Agriculture • Education • Health • Housing • Employment • Women & Child Development • Senior Citizens • Pensions
+
+### 3. 📊 Real-Time Market Data
+Shows **real mandi prices per kilogram**, charts, trends, and **voice summaries** to help farmers make informed selling decisions.
+
+**10 Commodities:**
+- Dry Chillies, Lemon, Bhindi, Cauliflower, Green Chilli, Cotton, Maize, Methi, Tomato
+- Realistic wholesale prices (₹/kg)
+- Price ranges and trend indicators
+- Voice price announcements
+
+### 4. 🕒 Recent Queries
+**8 Predefined static queries** with multilingual responses:
+- PM-Kisan eligibility
+- Market prices
+- Nearby PHC hospitals
+- Pension applications
+- Income certificate drafts
+- Document translation
+- Services overview
+- Community certificates
+
+**Features:**
+- Collapsible/expandable UI
+- Voice output for all responses
+- Copy to clipboard
+- Automatic query history
+
+### 5. 💬 Chat Assistant
+A conversational AI trained on:
+- Government schemes
+- Market prices
+- Website usage
+- Daily citizen queries
+- Public assistance workflows
+
+**Works in all supported languages** with voice input/output.
+
+### 6. 📄 Document Analyzer (OCR + Summary + Translation)
+Citizens can upload documents like:
+- Ration card • Aadhaar • Certificates • Government notices
+
+**AI-Sahayak:**
+- Extracts text
+- Simplifies content
+- Translates it
+- Reads it out loud
+
+### 7. 🗺️ Local Service Discovery
+Shows nearest:
+- Hospitals • Police stations • Banks • Government offices • Schools
+
+**With:** Distance, Directions, Contact information
+
+### 8. 📝 Draft/Letter Generator
+Creates **editable ready-to-submit drafts** for:
+- Income certificates
+- Caste certificates
+- Leave letters
+- Complaints
+- Applications
+- NOCs
+- Grievances
+
+### 9. 🏠 Personalized Dashboard
+User gets:
+- Custom welcome greeting ("Proud Indian")
+- Quick access modules
+- Voice shortcuts
+- Recent updates
+- Market snapshot
+
+### 10. 🌐 Multilingual Support (10 Languages)
+**Every text and voice response** adapts to the user's chosen language:
+- 🇮🇳 **Hindi** (हिंदी)
+- 🇮🇳 **Tamil** (தமிழ்)
+- 🇮🇳 **Telugu** (తెలుగు)
+- 🇮🇳 **Bengali** (বাংলা)
+- 🇮🇳 **Marathi** (मराठी)
+- 🇮🇳 **Gujarati** (ગુજરાતી)
+- 🇮🇳 **Kannada** (ಕನ್ನಡ)
+- 🇮🇳 **Malayalam** (മലയാളം)
+- 🇮🇳 **Punjabi** (ਪੰਜਾਬੀ)
+- 🇬🇧 **English**
+
+---
+
+## 🎯 IMPACT
+
+AI-Sahayak turns a **complex, scattered, text-heavy ecosystem** into a **voice-driven, simple, accessible public support system**, bridging the digital divide and empowering **millions of citizens** to:
+
+✅ **Know their benefits** - Understand eligibility for 2000+ schemes  
+✅ **Access schemes faster** - Step-by-step guidance with required documents  
+✅ **Understand government documents** - OCR + translation + voice readout  
+✅ **Make better farming decisions** - Real-time market data with voice  
+✅ **Navigate public services easily** - Find nearby facilities instantly  
+✅ **Communicate digitally** - Without typing or reading  
+
+**It truly becomes a "Digital Seva AI Companion" for Bharat.** 🇮🇳
 
 ---
 

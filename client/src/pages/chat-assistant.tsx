@@ -10,6 +10,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Send, Loader2, Volume2, Mic, MessageSquare, Plus, AlertCircle, StopCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { Conversation, Message } from "@shared/schema";
+import { getStaticAnswer } from "@/data/chatStaticKnowledge";
 
 // Browser Speech Recognition types
 declare global {
@@ -208,20 +209,8 @@ export default function ChatAssistant() {
   };
 
   const generateStaticFallback = (userQuery: string): string => {
-    const responses: { [key: string]: string } = {
-      'en': `API not working — showing safe conversational fallback response.\n\nAI-Sahayak is running in offline mode. You can ask about schemes, market prices, services, and documents. Real-time AI is unavailable right now.`,
-      'hi': `API काम नहीं कर रहा — सुरक्षित संवादात्मक फ़ॉलबैक प्रतिक्रिया दिखा रहे हैं।\n\nAI-Sahayak ऑफ़लाइन मोड में चल रहा है। आप योजनाओं, बाजार की कीमतों, सेवाओं और दस्तावेज़ों के बारे में पूछ सकते हैं। वास्तविक समय AI अभी उपलब्ध नहीं है।`,
-      'ta': `API வேலை செய்யவில்லை — பாதுகாப்பான உரையாடல் பின்னடைவு பதிலைக் காட்டுகிறது.\n\nAI-Sahayak ஆஃப்லைன் பயன்முறையில் இயங்குகிறது. நீங்கள் திட்டங்கள், சந்தை விலைகள், சேவைகள் மற்றும் ஆவணங்களைப் பற்றி கேட்கலாம். நிகழ்நேர AI தற்போது கிடைக்கவில்லை.`,
-      'te': `API పని చేయడం లేదు — సురక్షితమైన సంభాషణాత్మక ఫాల్‌బ్యాక్ ప్రతిస్పందనను చూపిస్తోంది.\n\nAI-Sahayak ఆఫ్‌లైన్ మోడ్‌లో నడుస్తోంది. మీరు పథకాలు, మార్కెట్ ధరలు, సేవలు మరియు పత్రాల గురించి అడగవచ్చు. రియల్-టైమ్ AI ప్రస్తుతం అందుబాటులో లేదు.`,
-      'bn': `API কাজ করছে না — নিরাপদ কথোপকথন ফলব্যাক প্রতিক্রিয়া দেখাচ্ছে।\n\nAI-Sahayak অফলাইন মোডে চলছে। আপনি প্রকল্প, বাজার মূল্য, পরিষেবা এবং নথি সম্পর্কে জিজ্ঞাসা করতে পারেন। রিয়েল-টাইম AI এখন উপলব্ধ নেই।`,
-      'mr': `API काम करत नाही — सुरक्षित संभाषणात्मक फॉलबॅक प्रतिसाद दाखवत आहे.\n\nAI-Sahayak ऑफलाइन मोडमध्ये चालू आहे. तुम्ही योजना, बाजार किंमती, सेवा आणि कागदपत्रांबद्दल विचारू शकता. रिअल-टाइम AI सध्या उपलब्ध नाही.`,
-      'gu': `API કામ કરી રહ્યું નથી — સુરક્ષિત વાર્તાલાપ ફૉલબેક પ્રતિસાદ બતાવી રહ્યું છે.\n\nAI-Sahayak ઑફલાઇન મોડમાં ચાલી રહ્યું છે. તમે યોજનાઓ, બજાર ભાવ, સેવાઓ અને દસ્તાવેજો વિશે પૂછી શકો છો. રિયલ-ટાઇમ AI હાલમાં ઉપલબ્ધ નથી.`,
-      'kn': `API ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತಿಲ್ಲ — ಸುರಕ್ಷಿತ ಸಂಭಾಷಣಾತ್ಮಕ ಫಾಲ್‌ಬ್ಯಾಕ್ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ತೋರಿಸುತ್ತಿದೆ.\n\nAI-Sahayak ಆಫ್‌ಲೈನ್ ಮೋಡ್‌ನಲ್ಲಿ ಚಾಲನೆಯಲ್ಲಿದೆ. ನೀವು ಯೋಜನೆಗಳು, ಮಾರುಕಟ್ಟೆ ಬೆಲೆಗಳು, ಸೇವೆಗಳು ಮತ್ತು ದಾಖಲೆಗಳ ಬಗ್ಗೆ ಕೇಳಬಹುದು. ರಿಯಲ್-ಟೈಮ್ AI ಪ್ರಸ್ತುತ ಲಭ್ಯವಿಲ್ಲ.`,
-      'ml': `API പ്രവർത്തിക്കുന്നില്ല — സുരക്ഷിത സംഭാഷണാത്മക ഫാൾബാക്ക് പ്രതികരണം കാണിക്കുന്നു.\n\nAI-Sahayak ഓഫ്‌ലൈൻ മോഡിൽ പ്രവർത്തിക്കുന്നു. നിങ്ങൾക്ക് പദ്ധതികൾ, വിപണി വിലകൾ, സേവനങ്ങൾ, രേഖകൾ എന്നിവയെക്കുറിച്ച് ചോദിക്കാം. റിയൽ-ടൈം AI ഇപ്പോൾ ലഭ്യമല്ല.`,
-      'pa': `API ਕੰਮ ਨਹੀਂ ਕਰ ਰਿਹਾ — ਸੁਰੱਖਿਅਤ ਗੱਲਬਾਤ ਫਾਲਬੈਕ ਜਵਾਬ ਦਿਖਾ ਰਿਹਾ ਹੈ.\n\nAI-Sahayak ਆਫਲਾਈਨ ਮੋਡ ਵਿੱਚ ਚੱਲ ਰਿਹਾ ਹੈ. ਤੁਸੀਂ ਯੋਜਨਾਵਾਂ, ਮਾਰਕੀਟ ਕੀਮਤਾਂ, ਸੇਵਾਵਾਂ ਅਤੇ ਦਸਤਾਵੇਜ਼ਾਂ ਬਾਰੇ ਪੁੱਛ ਸਕਦੇ ਹੋ. ਰੀਅਲ-ਟਾਈਮ AI ਹੁਣ ਉਪਲਬਧ ਨਹੀਂ ਹੈ.`
-    };
-
-    return responses[i18n.language] || responses['en'];
+    // Use comprehensive static knowledge base with 400+ entries
+    return getStaticAnswer(userQuery);
   };
 
   const startVoiceInput = () => {
