@@ -30,12 +30,308 @@ const draftTypes = [
   { value: "leave_letter", label: "Leave Letter" },
 ];
 
-// Static draft templates
+// Static draft templates with comprehensive coverage
 const STATIC_DRAFT_TEMPLATES: Record<string, { title: string; content: string }> = {
+  application: {
+    title: "Job/Scheme Application Letter",
+    content: `To,
+The [Officer Designation/HR Manager],
+[Department/Organization Name],
+[Complete Address],
+[City, State] - [PIN Code]
+
+Subject: Application for [Job Position/Scheme Name]
+
+Respected Sir/Madam,
+
+I, [Your Full Name], son/daughter of [Father's Name], aged [Age] years, residing at [Full Address], would like to submit my application for [Job Position/Scheme Name] as advertised on [Date/Source].
+
+Personal Details:
+- Name: [Full Name]
+- Date of Birth: [DD/MM/YYYY]
+- Age: [Age] years
+- Gender: [Male/Female/Other]
+- Address: [Full Address]
+- Mobile: [10-digit number]
+- Email: [email@example.com]
+- Aadhaar Number: [XXXX XXXX XXXX]
+
+Educational Qualifications:
+- [Highest Degree]: [University Name], [Year], [Percentage/CGPA]
+- [Previous Degree]: [University Name], [Year], [Percentage/CGPA]
+
+Work Experience (if any):
+- [Job Title] at [Company Name], [Duration]
+- [Responsibilities and achievements]
+
+Skills:
+[List relevant skills - computer skills, language proficiency, technical skills, etc.]
+
+I believe I fulfill all the eligibility criteria for this [position/scheme] and would be grateful for the opportunity to [contribute to your organization/benefit from this scheme]. I am available for an interview at your convenience.
+
+Enclosed Documents:
+1. Resume/Biodata (1 page)
+2. Educational certificates (attested copies)
+3. Experience certificates (if applicable)
+4. Aadhaar Card copy
+5. Passport size photographs (2 nos.)
+6. [Any other required documents]
+
+I request you to kindly consider my application and grant me an opportunity.
+
+Thanking you in anticipation,
+
+Yours faithfully,
+[Your Full Name]
+[Signature]
+[Date: DD/MM/YYYY]
+
+Enclosures: As mentioned above`,
+  },
+  letter: {
+    title: "Formal Letter",
+    content: `From,
+[Your Full Name]
+[Your Complete Address]
+[City, State] - [PIN Code]
+[Mobile Number]
+[Email Address]
+
+To,
+[Recipient Name]
+[Recipient Designation]
+[Organization/Department Name]
+[Complete Address]
+[City, State] - [PIN Code]
+
+Date: [DD/MM/YYYY]
+
+Subject: [Clear and concise subject line]
+
+Respected Sir/Madam,
+
+I, [Your Full Name], resident of [Area/Village/City], would like to bring to your kind attention [state the purpose of the letter].
+
+[First Paragraph: Introduction and context]
+I am writing this letter to [purpose]. As a [your status - resident/citizen/member], I have [reason/background].
+
+[Second Paragraph: Main content/details]
+[Provide detailed information, facts, dates, and specific points you want to communicate. Be clear and specific.]
+
+[Third Paragraph: Request/Action needed]
+In view of the above, I kindly request you to [state clearly what you want - approval, action, consideration, etc.]. This would [explain the benefit/outcome].
+
+I am enclosing the following documents for your reference:
+1. [Document 1]
+2. [Document 2]
+3. [Document 3]
+
+I shall be highly obliged for your kind consideration and prompt action on this matter. I am available for any further clarification.
+
+Thanking you for your time and attention.
+
+Yours faithfully,
+[Your Full Name]
+[Your Signature]
+
+Enclosures: As mentioned`,
+  },
+  complaint: {
+    title: "Complaint/Grievance Letter",
+    content: `To,
+The [Officer Designation - Tahsildar/Commissioner/Superintendent],
+[Department Name - Municipality/Police Department/Public Works],
+[Office Address],
+[City, District, State] - [PIN Code]
+
+Subject: Grievance/Complaint regarding [Brief Issue - Road Damage/Water Supply/Electricity/Public Nuisance]
+
+Respected Sir/Madam,
+
+I, [Your Full Name], son/daughter of [Father's Name], residing at [Full Address with Landmark], [Village/Town/City], would like to lodge a formal complaint regarding [specific issue].
+
+Details of the Complaint:
+
+1. Nature of Issue:
+[Describe the problem in detail - what is happening, since when, frequency, severity]
+
+2. Location:
+[Exact location with landmarks - Street name, area, nearby notable places]
+
+3. Timeline:
+- Issue started on: [Date]
+- Frequency: [Daily/Weekly/Occasionally]
+- Duration: [How long this has been continuing]
+
+4. Impact on Public/Personal Life:
+[Explain how this issue is affecting you, your family, or the community]
+- Health impact: [if any]
+- Financial impact: [if any]
+- Inconvenience caused: [describe]
+
+5. Previous Complaints/Actions Taken:
+- Complaint registered on [Date] with [Department/Person]
+- Reference Number (if any): [Number]
+- Current status: [Pending/No action taken]
+
+Details of Incident (if applicable):
+- Date and Time: [DD/MM/YYYY at HH:MM AM/PM]
+- Persons involved: [Names/Descriptions if known]
+- Witnesses: [Names and contacts if any]
+
+Expected Resolution:
+I request you to kindly:
+1. [Specific action 1 - e.g., repair the road, restore water supply]
+2. [Specific action 2 - e.g., take action against responsible parties]
+3. [Specific action 3 - e.g., provide compensation if applicable]
+
+Supporting Evidence:
+1. Photographs of the issue (attached)
+2. Previous complaint copy
+3. Medical bills (if applicable)
+4. Witness statements (if any)
+
+I request your immediate intervention and resolution of this matter at the earliest. This issue is causing significant hardship to [number] families in our area.
+
+I am available at the below contact details for any site visit, verification, or further information:
+Mobile: [Your 10-digit number]
+Email: [Your email]
+
+I look forward to swift action and a positive resolution.
+
+Thanking you,
+
+Yours faithfully,
+[Your Full Name]
+[Full Address]
+[Contact Number]
+[Date: DD/MM/YYYY]
+
+Enclosures:
+1. Photographs (if any)
+2. Previous complaint copy
+3. Supporting documents`,
+  },
+  request: {
+    title: "Request Letter",
+    content: `To,
+[Recipient Name/Designation]
+[Organization/Department Name]
+[Complete Address]
+[City, State] - [PIN Code]
+
+Subject: Request for [Specific Item/Service/Permission/Certificate]
+
+Respected Sir/Madam,
+
+I, [Your Full Name], resident of [Full Address], would like to submit a humble request for [state what you need].
+
+Purpose of Request:
+I am in need of [item/service/permission/certificate] for the following purpose:
+[Explain why you need this - education, employment, travel, legal requirement, etc.]
+
+Background/Justification:
+[Provide relevant background information that supports your request]
+[Explain any special circumstances or urgency]
+
+Details:
+- Required by date: [DD/MM/YYYY]
+- Purpose: [Detailed purpose]
+- Validity period (if applicable): [Duration]
+
+Personal Details:
+- Name: [Full Name]
+- Address: [Complete Address]
+- Contact: [Phone Number]
+- Email: [Email Address]
+- Aadhaar Number: [XXXX XXXX XXXX]
+
+I have enclosed the following documents to support my request:
+1. Identity Proof (Aadhaar Card copy)
+2. Address Proof (Ration Card/Electricity Bill)
+3. [Any specific documents required]
+4. Application fee receipt (if applicable)
+
+I kindly request you to consider my application favorably and [grant permission/issue certificate/provide service] at the earliest convenience.
+
+I assure you that [any commitments or assurances relevant to the request].
+
+I shall be highly grateful for your kind consideration.
+
+Thanking you in advance,
+
+Yours faithfully,
+[Your Full Name]
+[Your Signature]
+[Contact Number]
+[Date: DD/MM/YYYY]
+
+Enclosures: As mentioned above`,
+  },
+  certificate: {
+    title: "Certificate Request Application",
+    content: `To,
+The [Issuing Authority - Tahsildar/Village Officer/School Principal],
+[Office Name/School Name],
+[Complete Address],
+[District, State] - [PIN Code]
+
+Subject: Application for [Name of Certificate] Certificate
+
+Respected Sir/Madam,
+
+I, [Your Full Name], son/daughter/wife of [Father's/Husband's Name], aged [Age] years, residing at [Full Address], would like to apply for a [Type of Certificate] Certificate.
+
+Purpose of Certificate:
+This certificate is required for [Purpose - educational admission, job application, government scheme, visa, loan, etc.].
+
+Personal Details:
+- Full Name: [As per Aadhaar]
+- Date of Birth: [DD/MM/YYYY]
+- Age: [Age] years
+- Gender: [Male/Female]
+- Father's Name: [Full Name]
+- Mother's Name: [Full Name]
+- Permanent Address: [Full Address]
+- Mobile Number: [10-digit number]
+- Email: [Email address]
+- Aadhaar Number: [XXXX XXXX XXXX]
+
+Additional Details (if applicable):
+[Provide specific details relevant to the certificate type]
+
+Required Documents Enclosed:
+1. Application form (duly filled and signed)
+2. Self-attested copy of Aadhaar Card
+3. Self-attested copy of Ration Card
+4. Passport size photographs (2 nos.)
+5. Address proof (Electricity bill/Voter ID)
+6. [Certificate-specific documents]
+7. Application fee receipt (if applicable)
+
+I hereby declare that all the information provided above is true and correct to the best of my knowledge. I request you to kindly verify the details and issue the [Certificate Name] at the earliest.
+
+I shall be highly obliged for your prompt action on this application.
+
+Thanking you,
+
+Yours faithfully,
+[Your Full Name]
+[Your Signature]
+[Date: DD/MM/YYYY]
+
+Enclosures:
+1. Application form
+2. Aadhaar Card copy
+3. Ration Card copy
+4. Photographs
+5. Other supporting documents`,
+  },
   income_certificate: {
-    title: "Application for Income Certificate",
+    title: "Income Certificate Application",
     content: `To,
 The Tahsildar,
+Taluk Office,
 [Taluk Name],
 [District Name],
 [State Name] - [PIN Code]
@@ -44,184 +340,280 @@ Subject: Application for Income Certificate
 
 Respected Sir/Madam,
 
-I, [Your Full Name], son/daughter/wife of [Father's/Husband's Name], aged [Age] years, residing at [Full Address], would like to apply for an Income Certificate for the purpose of [Purpose - e.g., educational scholarship, government scheme application].
+I, [Your Full Name], son/daughter/wife of [Father's/Husband's Name], aged [Age] years, permanently residing at [Full Address], [Village/Town], [Taluk], [District], [State] - [PIN Code], would like to submit an application for an Income Certificate.
 
-My family's annual income from all sources is approximately Rs. [Amount] per annum. The details of income sources are as follows:
+Purpose of Income Certificate:
+This certificate is required for [Select Purpose]:
+□ Educational scholarship application
+□ Fee concession
+□ Government scheme benefit (specify: _________)
+□ Educational loan
+□ Admission to educational institution
+□ Other (specify: _________)
 
-1. [Income Source 1]: Rs. [Amount]
-2. [Income Source 2]: Rs. [Amount]
+Family Details and Income Information:
 
-I request you to kindly issue an Income Certificate at the earliest. I have attached the following documents for your reference:
+1. Father/Guardian Details:
+   - Name: [Full Name]
+   - Occupation: [Occupation]
+   - Monthly Income: Rs. [Amount]
+   - Annual Income: Rs. [Amount]
 
-1. Aadhaar Card copy
-2. Ration Card copy
-3. Salary slips/Income proof
-4. Address proof
+2. Mother's Details:
+   - Name: [Full Name]
+   - Occupation: [Occupation/Housewife]
+   - Monthly Income: Rs. [Amount]
+   - Annual Income: Rs. [Amount]
 
-Thanking you in anticipation.
+3. Self Income (if employed):
+   - Occupation: [Occupation/Student]
+   - Monthly Income: Rs. [Amount]
+   - Annual Income: Rs. [Amount]
+
+Total Family Annual Income: Rs. [Total Amount]
+
+Income Sources Breakdown:
+1. Salary/Wages: Rs. [Amount] per annum
+2. Agricultural Income: Rs. [Amount] per annum
+3. Business Income: Rs. [Amount] per annum
+4. Other Income: Rs. [Amount] per annum
+
+Total: Rs. [Total Amount] per annum
+
+Family Members:
+1. [Name] - [Relation] - [Age] - [Occupation]
+2. [Name] - [Relation] - [Age] - [Occupation]
+3. [Name] - [Relation] - [Age] - [Occupation]
+
+I hereby declare that the above information is true and correct to the best of my knowledge. Our family's total annual income from all sources does not exceed Rs. [Amount].
+
+Documents Enclosed:
+1. Self-attested copy of Aadhaar Card (Applicant)
+2. Self-attested copy of Ration Card (Family)
+3. Salary slips/Income proof (last 3 months)
+4. Employer certificate (if employed)
+5. Agricultural income certificate (if applicable)
+6. Bank passbook copy (last 6 months statement)
+7. Address proof (Electricity bill/Water bill)
+8. Passport size photographs (2 nos.)
+9. Self-declaration affidavit
+
+I request you to kindly verify the above details through the Revenue Inspector and Village Administrative Officer, and issue an Income Certificate at the earliest for the stated purpose.
+
+I am available for any field verification or inquiry.
+
+Thanking you in anticipation of early action,
 
 Yours faithfully,
 [Your Full Name]
-[Contact Number]
-[Date]
+[Your Signature]
+[Mobile Number]
+[Date: DD/MM/YYYY]
 
-Enclosures:
-1. Self-attested copy of Aadhaar Card
-2. Self-attested copy of Ration Card
-3. Income proof documents`,
+Applicant's Contact Details:
+Mobile: [10-digit number]
+Email: [Email address]
+Alternative Contact: [Number]
+
+Enclosures: As mentioned above (Total: ___ documents)`,
   },
   community_certificate: {
-    title: "Application for Community Certificate",
+    title: "Community Certificate Application",
     content: `To,
 The Tahsildar,
+Taluk Office,
 [Taluk Name],
 [District Name],
 [State Name] - [PIN Code]
 
-Subject: Application for Community Certificate
+Subject: Application for Community Certificate (Caste Certificate)
 
 Respected Sir/Madam,
 
-I, [Your Full Name], son/daughter/wife of [Father's/Husband's Name], aged [Age] years, residing at [Full Address], belong to [Community Name - SC/ST/OBC/MBC] community.
+I, [Your Full Name], son/daughter/wife of [Father's/Husband's Name], aged [Age] years, permanently residing at [Full Address], [Village/Town], [Taluk], [District], [State] - [PIN Code], belonging to [Community Name] community, would like to submit an application for a Community Certificate.
 
-I hereby request you to issue a Community Certificate for the purpose of [Purpose - e.g., educational admission, government job application, scholarship].
+Purpose of Community Certificate:
+This certificate is required for [Select Purpose]:
+□ Educational admission (College/University)
+□ Scholarship application
+□ Government job application
+□ Reservation benefits
+□ Competitive examination
+□ Other (specify: _________)
 
-My family has been residing in this area for [Number] years, and we belong to the [Community Name] community as per government records.
+Applicant's Details:
+- Full Name: [As per Aadhaar]
+- Date of Birth: [DD/MM/YYYY]
+- Age: [Age] years
+- Gender: [Male/Female]
+- Community: [SC/ST/OBC/MBC - specify subcaste]
+- Religion: [Religion]
+- Nationality: Indian
+- Marital Status: [Married/Unmarried]
 
-I have attached the following documents for verification:
+Father's Details:
+- Name: [Full Name]
+- Community: [Same as applicant]
+- Occupation: [Occupation]
+- Native Place: [Village/Town, District]
 
-1. Aadhaar Card copy
-2. Ration Card copy
-3. School/College certificates
-4. Family community certificate (if available)
+Mother's Details:
+- Name: [Full Name]
+- Maiden Community: [Community]
+- Father's Name (Maternal Grandfather): [Name]
+- Native Place: [Village/Town, District]
 
-I request you to kindly verify the details and issue the Community Certificate at the earliest.
+Residential Details:
+- Present Address: [Full Address]
+- Permanent Address: [Full Address]
+- Duration of Residence: [Number of years]
+- Village/Town: [Name]
+- Taluk: [Name]
+- District: [Name]
+- State: [Name]
 
-Thanking you for your kind consideration.
+Community Background:
+Our family has been belonging to [Community Name] community for generations. We have been permanent residents of [Village/Town] for [Number] years. Our ancestors have been living in this region and following the customs and traditions of [Community Name] community.
+
+Previous Certificates (if any):
+- Father's Community Certificate Number: [Number] (issued on [Date])
+- Sibling's Certificate Number (if any): [Number]
+- [Any other family member's certificate details]
+
+Educational Details:
+- School/College Name: [Name]
+- Class/Year: [Current class/year]
+- School Community Certificate: [Yes/No]
+
+Documents Enclosed:
+1. Self-attested copy of Aadhaar Card (Applicant)
+2. Self-attested copy of Birth Certificate
+3. Self-attested copy of School/College ID Card
+4. Self-attested copy of Ration Card (Family)
+5. Father's Community Certificate (if available)
+6. School Leaving Certificate/Transfer Certificate
+7. Residence proof (Electricity bill/Water tax receipt)
+8. Passport size photographs (4 nos.)
+9. Self-declaration affidavit on stamp paper
+10. Previous generation certificates (if available)
+
+Declaration:
+I hereby solemnly declare that:
+1. I belong to [Community Name] community by birth
+2. My father and ancestors belong to the same community
+3. Our family has been residing in [District] for generations
+4. All information provided is true and correct
+5. I have not changed my community/religion
+6. I am eligible for community certificate as per government rules
+
+I request you to kindly verify the above details through field verification by the Revenue Inspector and Village Administrative Officer, and issue a Community Certificate at the earliest for the stated purpose.
+
+I am ready to provide any additional information or documents if required. I am also available for personal appearance and field verification at your convenience.
+
+Thanking you for your kind consideration,
 
 Yours faithfully,
 [Your Full Name]
-[Contact Number]
-[Date]
+[Your Signature]
+[Mobile Number]
+[Date: DD/MM/YYYY]
 
-Enclosures:
-1. Self-attested copy of Aadhaar Card
-2. Self-attested copy of Ration Card
-3. Educational certificates`,
-  },
-  complaint: {
-    title: "Grievance Petition",
-    content: `To,
-The [Officer Designation],
-[Department Name],
-[Office Address],
-[City, State] - [PIN Code]
+Contact Details:
+Mobile: [10-digit number]
+Email: [Email address]
+Alternative Contact: [Number]
+Father's Contact: [Number]
 
-Subject: Grievance regarding [Brief Issue Description]
+Enclosures: As mentioned above (Total: ___ documents)
 
-Respected Sir/Madam,
-
-I, [Your Full Name], resident of [Full Address], would like to bring to your kind attention the following grievance:
-
-Issue Description:
-[Describe the issue in detail - what happened, when it happened, where it happened, and who is involved]
-
-Impact:
-[Explain how this issue is affecting you or your community]
-
-Previous Actions Taken:
-1. [Action 1] on [Date]
-2. [Action 2] on [Date]
-
-Expected Resolution:
-[Clearly state what you expect as a resolution to this issue]
-
-I request your immediate intervention in this matter and seek a resolution at the earliest. I am available for any further clarification or documentation required.
-
-Supporting Documents:
-1. [Document 1]
-2. [Document 2]
-
-I look forward to a positive response and swift action.
-
-Thanking you,
-
-Yours faithfully,
-[Your Full Name]
-[Contact Number]
-[Email Address]
-[Date]`,
+---
+For Office Use Only:
+Revenue Inspector's Report: _______________
+VAO Verification: _______________
+Tahsildar's Remarks: _______________
+Certificate Number: _______________
+Date of Issue: _______________`,
   },
   leave_letter: {
     title: "Leave Application",
     content: `To,
-[Manager/Principal Name],
+[Manager's Name/Principal's Name],
 [Designation],
 [Organization/School Name],
-[City]
+[Address],
+[City, State] - [PIN Code]
 
-Subject: Application for Leave
+Subject: Application for [Casual/Medical/Emergency] Leave
 
 Respected Sir/Madam,
 
-I, [Your Full Name], [your designation/class and section], would like to request leave for [number] days from [Start Date] to [End Date].
+I, [Your Full Name], working as [Your Designation] in [Department Name] / studying in [Class/Standard and Section], would like to request leave for [Number] day(s) from [Start Date] to [End Date] ([both dates inclusive/[End Date] inclusive]).
 
 Reason for Leave:
-[Provide the reason - medical emergency, family function, personal work, etc.]
+[Select appropriate reason and provide details:]
 
-During my absence, [if applicable - mention any arrangement made for pending work or coverage].
+□ Medical Emergency:
+I am suffering from [illness/medical condition] and have been advised by my doctor to take rest for [duration]. I have attached the medical certificate for your reference.
 
-I kindly request you to grant me leave for the mentioned period. I shall be highly grateful for your approval.
+□ Family Emergency/Function:
+[Describe the family situation - wedding, funeral, family member illness, urgent family matter, etc.]
+
+□ Personal Work:
+[Provide brief explanation of the personal work that requires leave]
+
+□ Other:
+[Specify the reason clearly]
+
+Leave Details:
+- Leave Type: [Casual Leave/Sick Leave/Emergency Leave]
+- Number of Days: [Number]
+- From Date: [DD/MM/YYYY]
+- To Date: [DD/MM/YYYY]
+- Total Working Days: [Number]
+- Resuming Work/School on: [DD/MM/YYYY]
+
+Work Handover/Academic Coverage (if applicable):
+During my absence:
+- [Colleague's Name] will handle my urgent work responsibilities
+- My pending work has been completed up to [date]
+- I will complete any remaining work immediately upon my return
+- For students: I will cover the missed lessons by [attending extra classes/self-study/taking notes from classmates]
+
+Previous Leave Record (if required):
+- Last leave taken: [Date] for [Number] days
+- Total leaves taken this [month/year]: [Number] days
+- Available leave balance: [Number] days
+
+Contact During Leave:
+I can be reached at:
+- Mobile: [10-digit number]
+- Email: [Email address]
+- Emergency Contact: [Alternative number]
+
+Documents Attached (if applicable):
+1. Medical certificate (for medical leave)
+2. [Doctor's prescription/Hospital bill]
+3. [Other supporting documents]
+
+I kindly request you to grant me leave for the mentioned period. I shall be highly obliged and grateful for your approval.
+
+I assure you that I will resume my duties/studies promptly on [Return Date] and complete any pending work at the earliest.
 
 Thank you for your understanding and consideration.
 
 Yours sincerely,
 [Your Full Name]
+[Your Signature]
 [Employee ID/Roll Number]
+[Department/Class]
 [Contact Number]
-[Date]`,
-  },
-  application: {
-    title: "Job/Scheme Application",
-    content: `To,
-The [Officer Designation],
-[Department/Organization Name],
-[Address],
-[City, State] - [PIN Code]
+[Date: DD/MM/YYYY]
 
-Subject: Application for [Job Position/Scheme Name]
-
-Respected Sir/Madam,
-
-I, [Your Full Name], would like to apply for [Job Position/Scheme Name] as advertised/announced on [Date/Source].
-
-Personal Details:
-- Name: [Full Name]
-- Age: [Age]
-- Address: [Full Address]
-- Contact: [Phone Number]
-- Email: [Email Address]
-
-Qualifications:
-- Education: [Highest Qualification]
-- Experience: [Years of Experience]
-- Skills: [Relevant Skills]
-
-I believe I meet all the eligibility criteria for this [position/scheme] and would be grateful for the opportunity to [contribute/benefit].
-
-I have enclosed the following documents:
-1. Resume/Biodata
-2. Educational certificates
-3. Experience certificates
-4. Identity proof
-
-I look forward to a favorable response.
-
-Thanking you,
-
-Yours faithfully,
-[Your Full Name]
-[Date]`,
+---
+For Office Use Only:
+Recommended by: _______________
+Approved by: _______________
+Date: _______________`,
   },
 };
 
