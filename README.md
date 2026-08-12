@@ -20,7 +20,7 @@
 
 This is a genuine capture of the deployed interface.
 
-[![AI-Sahayak deployed dashboard](./live-digital-seva-home.png)](https://aisahayak.netlify.app)
+[![AI-Sahayak deployed dashboard](https://github.com/user-attachments/assets/e239482f-f4ce-4607-8a4a-1544b157cde7)](https://aisahayak.netlify.app)
 
 ## One doorway, many citizen journeys
 
